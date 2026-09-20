@@ -18,6 +18,7 @@ useradd -s /bin/bash -g lfs -m -k /dev/null lfs
 
 cat << EOF > /etc/sudoers.d/lfs
 lfs ALL=NOPASSWD: ALL
+Defaults env_keep += "LFS"
 EOF
 EOT
 
