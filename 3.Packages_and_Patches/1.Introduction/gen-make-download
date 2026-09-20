@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+wget_list="$1"
+download_dir="$2"
+
+[[ -n "$wget_list" && -n "$download_dir" ]] || {
+    echo "usage: $0 [wget-list] [download_dir]" >&2
+    exit 2
+}
+
+readarray -t urls < "$wget_list"
+
+printf 'download_dir := %s\n' "$download_dir"
+printf '\n'
+printf '.PHONY: download\n'
+printf 'download:\n'
+printf '\n'
+for url in "${urls[@]}"; do
+    name="$(basename "$url")"
+
+    printf 'download: $(download_dir)/%s\n' "$name"
+    printf '$(download_dir)/%s:\n' "$name"
+    printf '\tcurl -fL -o"$@" %s\n' "$url"
+    printf '\n'
+done
