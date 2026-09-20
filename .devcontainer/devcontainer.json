@@ -1,0 +1,9 @@
+{
+  "name": "lfs",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=${containerWorkspaceFolder},consistency=cached",
+  "workspaceFolder": "/workspaces/lfs",
+  "userEnvProbe": "none"
+}
