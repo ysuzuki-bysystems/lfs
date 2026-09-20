@@ -24,6 +24,10 @@ EOT
 
 USER lfs:lfs
 ENV LFS=/workspaces/lfs/lfs
+ENV LC_ALL=POSIX
+ENV LFS_TGT=x86_64-lfs-linux-gnu
+ENV PATH=${LFS}/tools/bin:/usr/bin
+ENV CONFIG_SITE=${LFS}/usr/share/config.site
 
 RUN <<'EOT'
 set -e
@@ -36,7 +40,7 @@ set +h
 umask 022
 LFS=/workspaces/lfs/lfs
 LC_ALL=POSIX
-LFS_TGT=$(uname -m)-lfs-linux-gnu
+LFS_TGT=x86_64-lfs-linux-gnu
 PATH=/usr/bin
 if [ ! -L /bin ]; then PATH=/bin:$PATH; fi
 PATH=$LFS/tools/bin:$PATH
