@@ -1,5 +1,5 @@
 tarball := lfs/sources/gcc-16.2.0.tar.xz
-srcdir := lfs/sources/gcc-16.2.0
+srcdir := lfs/sources/gcc-r1
 
 mpfr_tarball := lfs/sources/mpfr-4.2.2.tar.xz
 gmp_tarball := lfs/sources/gmp-6.3.0.tar.xz
@@ -29,13 +29,13 @@ configure_opts += --enable-languages=c,c++
 
 .PHONY: make make-install
 
-make-install: $(srcdir)/build1/Makefile make
+make-install: $(srcdir)/build/Makefile make
 	$(MAKE) install -C $(<D)
 
-make: $(srcdir)/build1/Makefile
+make: $(srcdir)/build/Makefile
 	$(MAKE) -j $(shell nproc) -C $(<D)
 
-$(srcdir)/build1/Makefile: $(srcdir)/configure $(srcdir)/mpfr/configure $(srcdir)/gmp/configure $(srcdir)/mpc/configure
+$(srcdir)/build/Makefile: $(srcdir)/configure $(srcdir)/mpfr/configure $(srcdir)/gmp/configure $(srcdir)/mpc/configure
 	test -n $(LFS)
 	test -n $(LFS_TGT)
 	mkdir -pv $(@D)
@@ -54,5 +54,6 @@ $(srcdir)/mpc/configure: $(srcdir)/configure
 	tar -xf $(mpc_tarball) -C $(@D) --strip-components=1
 
 $(srcdir)/configure:
-	tar -xf $(tarball) -C lfs/sources
-	sed -e '/m64=/s/lib64/lib/' -i.orig $(srcdir)/gcc/config/i386/t-linux
+	mkdir -pv $(srcdir)
+	tar -xf $(tarball) -C $(srcdir) --strip-components=1
+	sed -e '/m64=/s/lib64/lib/' -i.orig $(srcdir)/gcc/config/i386/t-linux64
