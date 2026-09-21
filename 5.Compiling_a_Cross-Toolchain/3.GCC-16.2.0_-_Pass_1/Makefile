@@ -31,6 +31,7 @@ configure_opts += --enable-languages=c,c++
 
 make-install: $(srcdir)/build/Makefile make
 	$(MAKE) install -C $(<D)
+	cat $(srcdir)/gcc/{limitx,glimits,limity}.h > $$($(LFS_TGT)-gcc -print-file-name=include)/limits.h
 
 make: $(srcdir)/build/Makefile
 	$(MAKE) -j $(shell nproc) -C $(<D)
