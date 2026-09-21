@@ -22,6 +22,6 @@ for url in "${urls[@]}"; do
 
     printf 'download: $(download_dir)/%s\n' "$name"
     printf '$(download_dir)/%s:\n' "$name"
-    printf '\tcurl -fL -o"$@" %s\n' "$url"
+    printf '\tcurl -sSfL -o"$@" %s\n' "$url"
     printf '\n'
 done
