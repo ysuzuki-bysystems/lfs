@@ -24,7 +24,7 @@ $(stamps)/%:
 
 $(stamps)/$(c1):
 $(stamps)/$(c2):
-$(stamps)/$(c3):
+$(stamps)/$(c3): $(stamps)/$(c2)
 $(stamps)/$(c4):
 $(stamps)/$(c5):
 $(stamps)/$(c6):
