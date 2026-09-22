@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import argparse
+import ctypes
+from contextlib import contextmanager
+from pathlib import Path
+from typing import List
+
+
+libc = ctypes.CDLL(None, use_errno=True)
+
+libc.mount.argtypes = [
+    ctypes.c_char_p,  # source
+    ctypes.c_char_p,  # target
+    ctypes.c_char_p,  # filesystemtype
+    ctypes.c_ulong,   # mountflags
+    ctypes.c_void_p,  # data
+]
+libc.mount.restype = ctypes.c_int
+
+libc.umount2.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
+libc.umount2.restype = ctypes.c_int
+
+MS_BIND = 4096
+
+
+def mount(source: str, target: str | os.PathLike[str], fstype: str | None=None, flags: int=0, data: str | None=None):
+    def b(s: str | None):
+        return s.encode() if s is not None else None
+
+    ret = libc.mount(
+        b(source),
+        b(os.fspath(target)),
+        b(fstype),
+        flags,
+        b(data),
+    )
+    if ret != 0:
+        errno = ctypes.get_errno()
+        raise OSError(errno, os.strerror(errno))
+
+
+def umount(target: str, flags: int=0):
+    ret = libc.umount2(target.encode(), flags)
+    if ret != 0:
+        errno = ctypes.get_errno()
+        raise OSError(errno, os.strerror(errno))
+
+
+class Args:
+    command: List[str]
+    cwd: str
+    new_root: str
+
+
+def parseArgs() -> Args:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--new-root", default=os.environ.get("LFS"))
+    parser.add_argument("-C", "--cwd", default="/")
+    parser.add_argument("command", nargs=argparse.REMAINDER)
+    args = parser.parse_args(namespace=Args())
+
+    if args.new_root is None:
+        raise Exception("required: --new-root")
+
+    if not args.cwd.startswith("/"):
+        raise Exception("cwd must starts with /")
+
+    if len(args.command) < 1:
+        args.command = ["/bin/bash", "-i"]
+
+    return args
+
+
+@contextmanager
+def mounts(new_root: Path):
+    mounts: List[os.PathLike] = []
+
+    try:
+        dev = new_root / "dev"
+
+        mount("tmpfs", dev, "tmpfs")
+        mounts.append(dev)
+
+        dev_null = dev / "null"
+        dev_null.touch()
+        mount(os.devnull, dev_null, flags=MS_BIND)
+        mounts.append(dev_null)
+
+        # TODO needs zero, random, urandom, tty, ... ???
+
+        dev_pts = dev / "pts"
+        dev_pts.mkdir()
+        mount("devpts", dev_pts, "devpts", data="gid=5,mode=0620")
+        mounts.append(dev_pts)
+
+        proc = new_root / "proc"
+        mount("proc", proc, "proc")
+        mounts.append(proc)
+
+        sys = new_root / "sys"
+        # fsmount() failed: VFS: Mount too revealing.
+        #mount("sysfs", sys, "sysfs")
+        mount("/sys", sys, flags=MS_BIND)
+        mounts.append(sys)
+
+        run = new_root / "run"
+        mount("tmpfs", run, "tmpfs")
+        mounts.append(run)
+
+        dev_shm = dev / "shm"
+        dev_shm.mkdir()
+        # TODO OSError: [Errno 22] Invalid argument
+        # mount("tmpfs", dev_shm, "tmpfs", data="nosuid,nodev")
+        # mounts.append(dev_shm)
+
+        yield
+
+    finally:
+        for m in mounts[::-1]:
+            umount(os.fspath(m), 0)
+
+
+def main():
+    uid = os.getuid()
+    if uid != 0:
+        raise Exception("must run as root")
+
+    args = parseArgs()
+
+    new_env = {
+        "HOME": "/root",
+        "TERM": os.environ.get("TERM"),
+        "PS1": r"(lfs chroot) \u:\w\$ ",
+        "PATH": "/usr/bin:/usr/sbin",
+        "MAKEFLAGS": f"-j{os.cpu_count()}",
+        "TESTSUITEFLAGS": f"-j{os.cpu_count()}",
+    }
+
+    with mounts(Path(args.new_root)):
+        # TODO unshare(CLONE_NEWNS) ? (mountns)
+
+        pid = os.fork()
+        if pid == 0:
+            os.chroot(args.new_root)
+            os.chdir(Path(args.cwd).resolve())
+            os.execvpe(args.command[0], args.command, new_env)
+
+        (_, status) = os.waitpid(pid, 0)
+
+    exit_code = os.waitstatus_to_exitcode(status)
+    if exit_code != 0:
+        sys.exit(exit_code)
+
+if __name__ == "__main__":
+    main()

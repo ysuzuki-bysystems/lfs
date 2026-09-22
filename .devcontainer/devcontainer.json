@@ -5,5 +5,8 @@
   },
   "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=${containerWorkspaceFolder},consistency=cached",
   "workspaceFolder": "/workspaces/lfs",
-  "userEnvProbe": "none"
+  "userEnvProbe": "none",
+  "capAdd": [
+    "CAP_SYS_ADMIN"
+  ]
 }
