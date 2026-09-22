@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+cd /tmp
+trap 'rm -f a.out dummy.log' EXIT
+
+echo 'int main(){}' | cc -x c - -v -Wl,--verbose &> dummy.log
+
+o="$(readelf -l a.out | grep ': /lib' | xargs)"
+echo $o
+test "$o" = '[Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]'
+
+o="$(grep -E -o '/usr/lib.*/S?crt[1in].*succeeded' dummy.log | xargs)"
+echo $o
+test "$o" = '/usr/lib/gcc/x86_64-pc-linux-gnu/16.2.0/../../../../lib/Scrt1.o succeeded /usr/lib/gcc/x86_64-pc-linux-gnu/16.2.0/../../../../lib/crti.o succeeded /usr/lib/gcc/x86_64-pc-linux-gnu/16.2.0/../../../../lib/crtn.o succeeded'
+
+o="$(grep -B4 '^ /usr/include' dummy.log|xargs)"
+echo $o
+test "$o" = '#include <...> search starts here: /usr/lib/gcc/x86_64-pc-linux-gnu/16.2.0/include /usr/local/include /usr/lib/gcc/x86_64-pc-linux-gnu/16.2.0/include-fixed /usr/include'
+
+o="$(grep 'SEARCH.*/usr/lib' dummy.log |sed 's|; |\n|g'|xargs)"
+echo $o
+echo test "$o" = 'SEARCH_DIR(/usr/x86_64-pc-linux-gnu/lib64) SEARCH_DIR(/usr/lib) SEARCH_DIR(/usr/x86_64-pc-linux-gnu/lib);'
+
+o="$(grep "/lib.*/libc.so.6 " dummy.log|xargs)"
+echo $o
+test "$o" = 'attempt to open /usr/lib/libc.so.6 succeeded'
+
+o="$(grep found dummy.log|xargs)"
+echo $o
+test "$o" = 'found ld-linux-x86-64.so.2 at /usr/lib/ld-linux-x86-64.so.2'

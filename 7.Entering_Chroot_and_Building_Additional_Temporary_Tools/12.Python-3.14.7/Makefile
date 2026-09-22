@@ -25,4 +25,3 @@ $(srcdir)/Makefile: $(srcdir)/configure
 $(srcdir)/configure:
 	sudo $(lfs-chroot) -C $(chroot_srcdir)/.. mkdir -pv $(chroot_srcdir)
 	sudo $(lfs-chroot) -C $(chroot_srcdir)/.. tar -xf $(chroot_tarball) -C $(chroot_srcdir) --strip-components=1
-

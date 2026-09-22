@@ -72,7 +72,10 @@ def parseArgs() -> Args:
         raise Exception("cwd must starts with /")
 
     if len(args.command) < 1:
-        args.command = ["/bin/bash", "-i"]
+        if sys.stdin.isatty():
+            args.command = ["/bin/bash", "-i"]
+        else:
+            args.command = ["/bin/bash"]
 
     return args
 
@@ -98,6 +101,9 @@ def mounts(new_root: Path):
         dev_pts.mkdir()
         mount("devpts", dev_pts, "devpts", data="gid=5,mode=0620")
         mounts.append(dev_pts)
+
+        dev_ptmx = dev / "ptmx"
+        dev_ptmx.symlink_to("pts/ptmx")
 
         proc = new_root / "proc"
         mount("proc", proc, "proc")
