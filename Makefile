@@ -12,9 +12,14 @@ c9 := 9.System_Configuration
 c10 := 10.Making_the_LFS_System_Bootable
 c11 := 11.The_End
 
+
 .PHONY: all
 
-all: $(stamps)/$(c11)
+all: lfs.image
+
+lfs.image: $(stamps)/$(c11)
+	sudo ./lfs-chroot rm -rf /etc/fstab
+	sudo systemd-repart --definitions=repart.d --root=$(LFS) --empty=create --size=10G --generate-fstab=/etc/fstab --json=short lfs.image
 
 $(stamps)/%:
 	test -n "$(LFS)"

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+tmp="$(mktemp)"
+trap 'rm $tmp' EXIT
+
+cat << 'EOF' > $tmp
+configfile ($root)/grub/grub.cfg
+EOF
+
+grub-mkstandalone -O x86_64-efi -o /boot/EFI/BOOT/BOOTX64.EFI "boot/grub/grub.cfg=$tmp"
+
+cat << 'EOF' > /boot/grub/grub.cfg
+set timeout=5
+set default=0
+
+menuentry "Linux From Scratch" {
+    linux /vmlinuz-7.1.8-lfs-13.1-systemd root=LABEL=LFS rw
+}
+EOF

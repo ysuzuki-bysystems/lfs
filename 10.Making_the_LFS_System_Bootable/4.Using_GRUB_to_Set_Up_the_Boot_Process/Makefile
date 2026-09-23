@@ -1,3 +1,7 @@
+lfs-chroot := ../../lfs-chroot
+
+
 .PHONY: nop
 
-nop: # Configure when using
+nop:
+	cat setup-grub | sudo $(lfs-chroot)

@@ -10,10 +10,10 @@ lfs-chroot := ../../lfs-chroot
 
 make-install: $(srcdir)/Makefile make
 	sudo $(lfs-chroot) -C $(chroot_srcdir) make modules_install
-	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -iv arch/x86/boot/bzImage /boot/vmlinuz-7.2.6-lfs-r13.1-11 
-	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -iv System.map /boot/System.map-7.2.6
-	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -iv .config /boot/config-7.2.6
-	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -r Documentation -T /usr/share/doc/linux-7.2.6
+	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -iv arch/x86/boot/bzImage /boot/vmlinuz-7.1.8-lfs-13.1-systemd
+	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -iv System.map /boot/System.map-7.1.8
+	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -iv .config /boot/config-7.1.8
+	sudo $(lfs-chroot) -C $(chroot_srcdir) cp -r Documentation -T /usr/share/doc/linux-7.1.8
 
 make: $(srcdir)/Makefile
 	sudo $(lfs-chroot) -C $(chroot_srcdir) make

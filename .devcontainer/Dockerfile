@@ -4,7 +4,7 @@ RUN <<'EOT'
 set -e
 apt-get update
 apt-get install -y --no-install-recommends gcc bison gawk g++ make patch python3 texinfo xz-utils
-apt-get install -y --no-install-recommends curl ca-certificates sudo systemd-repart
+apt-get install -y --no-install-recommends curl ca-certificates sudo systemd-repart dosfstools e2fsprogs mtools
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
