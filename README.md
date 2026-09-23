@@ -2,7 +2,7 @@
 
 This repository contains Makefiles for building [Linux From Scratch](https://www.linuxfromscratch.org/lfs/) **13.1-systemd** using Dev Containers.
 
-The build process follows the chapters and instructions from the Linux From Scratch book.
+The build process follows the chapters and instructions from the Linux From Scratch book. Computer instructions derived from the book are used under the MIT License.
 
 ## Build
 
