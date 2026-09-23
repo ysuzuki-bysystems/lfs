@@ -14,7 +14,7 @@ c11 := 11.The_End
 
 .PHONY: all
 
-all: $(stamps)/$(c10)
+all: $(stamps)/$(c11)
 
 $(stamps)/%:
 	test -n "$(LFS)"
