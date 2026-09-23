@@ -20,7 +20,7 @@ all: lfs.image
 lfs.image: $(stamps)/$(c11)
 	sudo ./lfs-chroot rm -rf /etc/fstab
 	sudo systemd-repart --definitions=repart.d --root=$(LFS) --empty=create --size=10G --generate-fstab=/etc/fstab --json=short $@ | tee repart-out.json
-	-sudo ./setup-grub-cfg %@ repart-out.json # TODO
+	sudo ./setup-grub-cfg $@ repart-out.json
 
 $(stamps)/%:
 	test -n "$(LFS)"

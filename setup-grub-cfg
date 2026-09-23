@@ -5,9 +5,9 @@ from os import PathLike
 import os
 import json
 from dataclasses import dataclass
-from tempfile import TemporaryDirectory
+from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, Protocol, TypeVar
 import subprocess
 
 
@@ -78,15 +78,19 @@ def root_partuuid(entries: list[RepartOutEntry]) -> str:
     raise Exception("no root found.")
 
 
-@contextmanager
-def loop_mount(image: str | PathLike[str], off: int, size: int) -> Generator[str]:
-    with TemporaryDirectory() as tmpdir:
-        # TODO failed to set up loop device for
-        subprocess.run(["mount", "-o", f"loop,offset={off},sizelimit={size}", os.fspath(image), tmpdir], check=True)
-        try:
-            yield tmpdir
-        finally:
-            subprocess.run(["umount", tmpdir], check=False)
+T = TypeVar("T", contravariant=True)
+
+class SupportsWrite(Protocol[T]):
+    def write(self, data: T, /) -> int: ...
+
+
+def write_grub_cfg(dest: SupportsWrite, partuuid: str):
+    print("set timeout=1", file=dest)
+    print("set default=0", file=dest)
+    print("", file=dest)
+    print('menuentry "Linux From Scratch" {', file=dest)
+    print(f"    linux /vmlinuz-7.1.8-lfs-13.1-systemd root=PARTUUID={partuuid} ro console=ttyS0,115200 earlycon", file=dest)
+    print("}", file=dest)
 
 
 def main():
@@ -96,9 +100,18 @@ def main():
     (off, size) = esp_offset(entries)
     partuuid = root_partuuid(entries)
 
-    with loop_mount(args.image, off, size) as mnt:
-        pass
-    print(off, partuuid)
+    with NamedTemporaryFile(mode="w") as tmp:
+        write_grub_cfg(tmp, partuuid)
+        tmp.flush()
+
+        subprocess.check_call([
+            "mcopy",
+            "-o",
+            "-i",
+            f"{args.image}@@{off}",
+            tmp.name,
+            "::/grub/grub.cfg",
+        ])
 
 
 if __name__ == "__main__":
