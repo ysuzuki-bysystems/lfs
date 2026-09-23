@@ -1,4 +1,4 @@
-# Linux From Scratch
+# My Linux From Scratch Build
 
 This repository contains Makefiles for building [Linux From Scratch](https://www.linuxfromscratch.org/lfs/) **13.1-systemd** using Dev Containers.
 
